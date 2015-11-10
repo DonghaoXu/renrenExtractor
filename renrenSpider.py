@@ -27,7 +27,7 @@ class renren:
     if userId is None:
       userId = self.__userId
     if userId is None:
-      return
+      return -1
     userId = str(userId)
     Logging.Logging.info(u'>>> Fetching target: ' + userId + '/Status')
     # Fetch the status url with the requested page
@@ -43,7 +43,7 @@ class renren:
     statusJson = json.loads(statusResponse)['doingArray']
     if len(statusJson) < 1:
       Logging.Logging.error(userId + u'/Status>>> Incorrect user ID or page number! Fetching STOPPED!')
-      return
+      return -1
     status = []
     for stat in statusJson:
       # Retrieve each comment under the status
@@ -102,7 +102,7 @@ class renren:
     if userId is None:
       userId = self.__userId
     if userId is None:
-      return
+      return -1
     userId = str(userId)
     Logging.Logging.info(u'>>> Fetching target: ' + userId + '/Gossip')
     # Fetch the gossip url with the requested page
@@ -121,6 +121,8 @@ class renren:
     url = 'http://gossip.renren.com/ajaxgossiplist.do'
     gossipResponse = self.fetchURL(url, urllib.urlencode(queryData)).read()
     gossipJson = json.loads(gossipResponse)['array']
+    if len(gossipJson) < 1:
+      return -1
     gossips = []
     for gossip in gossipJson:
       gossips.append({
@@ -147,7 +149,7 @@ class renren:
     if fname is None:
       fname = 'Status' + badFileName
     try:
-      Logging.Logging.info(u'Printing status and comments to ' + badFileName)
+      Logging.Logging.info(u'Printing status and comments to ' + fname)
       fh = open(fname, 'a')
       for stat in statusDict:
         fh.write(('Date: ' + stat['statusDate'] + '\t' + stat['userName'] + '\n').encode('utf8'))

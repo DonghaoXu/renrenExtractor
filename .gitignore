@@ -1,8 +1,8 @@
 test.py
+test2.py
 example.py
 *.txt
 response.html
 testhtml.html
-Logging.pyc
-renrenSpider.pyc
+*.pyc
 *_NotGivenThenALoooooooooooooongName
