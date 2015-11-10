@@ -42,7 +42,6 @@ class renren:
 		Logging.Logging.info(str(userId) + u'/Status>>> Fetching page ' + str(page) + u'...')
 		status = []
 		conversation = []
-		i = 0
 		for stat in statusJson:
 			# status info
 			status.append({
