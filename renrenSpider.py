@@ -3,6 +3,9 @@ import urllib2, urllib, re, bs4, json
 import Logging
 
 Logging.Logging.flag = True
+badFileName = '__NotGivenThenALoooooooooooooongName'
+
+
 class renren:
   def __init__(self, cookie):
     self.headers = {'cookie': cookie}
@@ -10,7 +13,7 @@ class renren:
 
   def userId(self):
     idPattern = re.compile(r'\Wid=([0-9]+);')
-    ids = idPattern.findall(cookie)
+    ids = idPattern.findall(self.headers['cookie'])
     if len(ids) < 1:
       Logging.Logging.error(u'The cookie doesn''t contain user ID.')
       return None
@@ -101,14 +104,22 @@ class renren:
     response = urllib2.urlopen(req)
     return response
 
-  def statusOutput(self, statusDict, dir):
-    if dir is None:
-      dir = 'Status_NotGivenThenALoooooooooooooongName.txt'
+  def statusOutput(self, statusDict, fname):
+    if fname is None:
+      fname = 'Status' + badFileName
     try:
-      fh = open(dir, 'a')
-      for stat in statusDict['status']:
-        pass
+      Logging.Logging.info(u'Printing status and comments to ' + badFileName)
+      fh = open(fname, 'a')
+      for stat in statusDict:
+        fh.write(('Date: ' + stat['statusDate'] + '\t' + stat['userName'] + '\n').encode('utf8'))
+        fh.write((stat['statusContent'] + '\n').encode('utf8'))
+        for comment in stat['comments']:
+          fh.write(('\tDate: ' + comment['commentDate'] + '\t' + comment['authorName'] +'\n').encode('utf8'))
+          fh.write(('\t' + comment['commentContent'] + '\n').encode('utf8'))
+      fh.close()
+      Logging.Logging.success(u'Printing DONE!')
     except:
+      Logging.Logging.error(u'Error')
       return
 
 
@@ -119,8 +130,8 @@ class renren:
 if __name__ == '__main__':
   cookie = raw_input('Enter your cookie: ')
   rr = renren(cookie)
-  dd = rr.fetchStatus(page=10)
-  print dd[0]['like']
+  dd = rr.fetchStatus(page=1)
+  rr.statusOutput(dd, None)
 
 
 
