@@ -25,9 +25,10 @@ class renren:
       userId = self.__userId
     if userId is None:
       return
-    Logging.Logging.info(u'>>> Fetching target: ' + str(userId) + '/Status')
+    userId = str(userId)
+    Logging.Logging.info(u'>>> Fetching target: ' + userId + '/Status')
     # Fetch the status url with the requested page
-    Logging.Logging.info(str(userId) + u'/Status>>> Fetching page ' + str(page) + u'...')
+    Logging.Logging.info(userId + u'/Status>>> Fetching page ' + str(page) + u'...')
     queryData = {
       'userId': userId,
       'curpage': page - 1
@@ -38,21 +39,11 @@ class renren:
     # statusJson is a list of status
     statusJson = json.loads(statusResponse)['doingArray']
     if len(statusJson) < 1:
-      Logging.Logging.error(str(userId) + u'/Status>>> Incorrect user ID or page number! Fetching STOPPED!')
+      Logging.Logging.error(userId + u'/Status>>> Incorrect user ID or page number! Fetching STOPPED!')
       return
     status = []
-    conversation = []
     for stat in statusJson:
-      # status info
-      status.append({
-        'userId': userId,
-        'userName': stat['name'],
-        'statusId': int(stat['id']),
-        'statusDate': stat['dtime'],
-        'isPrivate': False,
-        'statusContent': stat['content'],
-      })
-      # conversation info by status ID
+      # Retrieve each comment under the status
       queryData = {
         'limit': 20,
         'desc': 'true',
@@ -60,12 +51,13 @@ class renren:
         'replaceUBBLarge': 'true',
         'type': 'status',
         'entryId': int(stat['id']),
-        'entryOwnerId': str(userId)
+        'entryOwnerId': userId
       }
       url = 'http://comment.renren.com/comment/xoa2?' + urllib.urlencode(queryData)
       commentResponse = self.fetchURL(url).read()
       # commentJson is a list of comments json objects
       commentJson = json.loads(commentResponse)['comments']
+      conversation = []
       for comment in commentJson:
         conversation.append({
           'statusId': int(stat['id']),
@@ -77,11 +69,30 @@ class renren:
           'like': comment['like']['count'],
           'commentContent': comment['content']
         })
-    Logging.Logging.success(str(userId) + u'>>> Fetching status DONE!')
-    return {
-      'status': status,
-      'comment': conversation
-    }
+      # Retrieve like number for the status
+      queryData = {
+        'stype': 'status',
+        'sourceId': int(stat['id']),
+        'owner': userId,
+        'gid': 'status_' + str(int(stat['id'])),
+        'uid': userId
+      }
+      url = 'http://like.renren.com/showlikedetail?' + urllib.urlencode(queryData)
+      likeResponse = self.fetchURL(url).read()
+      likeJson = json.loads(likeResponse)
+      # status info
+      status.append({
+        'userId': userId,
+        'userName': stat['name'],
+        'statusId': int(stat['id']),
+        'statusDate': stat['dtime'],
+        'isPrivate': False,
+        'like': likeJson['likeCount'],
+        'statusContent': stat['content'],
+        'comments': conversation
+      })
+    Logging.Logging.success(userId + u'/Status>>> Fetching page ' + str(page) + ' DONE!')
+    return status
 
   def fetchURL(self, url, data=None, headers=None):
     if headers is None:
@@ -109,7 +120,7 @@ if __name__ == '__main__':
   cookie = raw_input('Enter your cookie: ')
   rr = renren(cookie)
   dd = rr.fetchStatus(page=10)
-  print dd['comment'][0]
+  print dd[0]['like']
 
 
 
