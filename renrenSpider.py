@@ -27,11 +27,12 @@ class renren:
       return
     Logging.Logging.info(u'>>> Fetching target: ' + str(userId) + '/Status')
     # Fetch the status url with the requested page
-    getData = {
+    Logging.Logging.info(str(userId) + u'/Status>>> Fetching page ' + str(page) + u'...')
+    queryData = {
       'userId': userId,
       'curpage': page - 1
     }
-    url = 'http://status.renren.com/GetSomeomeDoingList.do?' + urllib.urlencode(getData)
+    url = 'http://status.renren.com/GetSomeomeDoingList.do?' + urllib.urlencode(queryData)
     statusResponse = self.fetchURL(url).read()
     # Parse & Save data
     # statusJson is a list of status
@@ -39,43 +40,44 @@ class renren:
     if len(statusJson) < 1:
       Logging.Logging.error(str(userId) + u'/Status>>> Incorrect user ID or page number! Fetching STOPPED!')
       return
-    Logging.Logging.info(str(userId) + u'/Status>>> Fetching page ' + str(page) + u'...')
     status = []
     conversation = []
     for stat in statusJson:
       # status info
       status.append({
         'userId': userId,
-        'statusId': stat['id'],
+        'userName': stat['name'],
+        'statusId': int(stat['id']),
         'statusDate': stat['dtime'],
         'isPrivate': False,
         'statusContent': stat['content'],
       })
       # conversation info by status ID
-      getData = {
+      queryData = {
         'limit': 20,
-        'desc': True,
+        'desc': 'true',
         'offset': 0,
-        'replaceUBBLarge': True,
+        'replaceUBBLarge': 'true',
         'type': 'status',
-        'entryId': stat['id'],
-        'entryOwnerId': userId
+        'entryId': int(stat['id']),
+        'entryOwnerId': str(userId)
       }
-      url = 'http://comment.renren.com/comment/xoa2?' + urllib.urlencode(getData)
+      url = 'http://comment.renren.com/comment/xoa2?' + urllib.urlencode(queryData)
       commentResponse = self.fetchURL(url).read()
       # commentJson is a list of comments json objects
       commentJson = json.loads(commentResponse)['comments']
       for comment in commentJson:
         conversation.append({
-          'statusId': stat['id'],
+          'statusId': int(stat['id']),
           'authorId': comment['authorId'],
+          'authorName': comment['authorName'],
           'commentId': comment['commentId'],
           'isWhisper': comment['isWhisper'],
           'commentDate': comment['time'],
           'like': comment['like']['count'],
           'commentContent': comment['content']
         })
-    Logging.Logging.info(str(userId) + u'>>> Fetching status DONE!')
+    Logging.Logging.success(str(userId) + u'>>> Fetching status DONE!')
     return {
       'status': status,
       'comment': conversation
@@ -90,7 +92,16 @@ class renren:
 
   def statusOutput(self, statusDict, dir):
     if dir is None:
-      dir = ''
+      dir = 'Status_NotGivenThenALoooooooooooooongName.txt'
+    try:
+      fh = open(dir, 'a')
+      for stat in statusDict['status']:
+        pass
+    except:
+      return
+
+
+
 
     
 
@@ -98,7 +109,7 @@ if __name__ == '__main__':
   cookie = raw_input('Enter your cookie: ')
   rr = renren(cookie)
   dd = rr.fetchStatus(page=10)
-  print dd
+  print dd['comment'][0]
 
 
 

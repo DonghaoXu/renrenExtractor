@@ -24,4 +24,4 @@ class Logging:
   @staticmethod
   def success(msg):
     if Logging.flag == True:
-      print "".join(  [ termcolor.colored("SUCCES", "green"), ": ", termcolor.colored(msg, "white") ] )
+      print "".join(  [ termcolor.colored("SUCCESS", "green"), ": ", termcolor.colored(msg, "white") ] )
