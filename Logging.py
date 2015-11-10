@@ -1,3 +1,4 @@
+# Copy from https://github.com/egrcc/zhihu-python/blob/master/auth.py
 import termcolor
 
 class Logging:
