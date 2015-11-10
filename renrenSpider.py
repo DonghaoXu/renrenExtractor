@@ -3,7 +3,7 @@ import urllib2, urllib, re, bs4, json
 import Logging
 
 Logging.Logging.flag = True
-badFileName = '__NotGivenThenALoooooooooooooongName'
+badFileName = '_NotGivenThenALoooooooooooooongName'
 
 
 class renren:
@@ -97,6 +97,45 @@ class renren:
     Logging.Logging.success(userId + u'/Status>>> Fetching page ' + str(page) + ' DONE!')
     return status
 
+  def fetchGossip(self, userId=None, page=1):
+    # If id is none, id = the logged id, self.__id
+    if userId is None:
+      userId = self.__userId
+    if userId is None:
+      return
+    userId = str(userId)
+    Logging.Logging.info(u'>>> Fetching target: ' + userId + '/Gossip')
+    # Fetch the gossip url with the requested page
+    Logging.Logging.info(userId + u'/Gossip>>> Fetching page ' + str(page) + u'...')
+    queryData = {
+      'userId': userId,
+      # 'curpage': -1,
+      # 'destpage': 0,
+      # 'hostBeginId': None,
+      # 'hostEndId': None,
+      # 'guestBeginId': None,
+      # 'guestEndId': None,
+      'page': page - 1,
+      'id': userId
+    }
+    url = 'http://gossip.renren.com/ajaxgossiplist.do'
+    gossipResponse = self.fetchURL(url, urllib.urlencode(queryData)).read()
+    gossipJson = json.loads(gossipResponse)['array']
+    gossips = []
+    for gossip in gossipJson:
+      gossips.append({
+        'gossipId': gossip['id'],
+        'authorId': gossip['guestId'],
+        'authorName': gossip['guestName'],
+        'owner': gossip['owner'],
+        'gossipDate': gossip['time'],
+        'gossipContent': gossip['filterOriginalBody']
+      })
+    Logging.Logging.success(userId + u'/Gossip>>> Fetching page ' + str(page) + ' DONE!')
+    return gossips
+      
+
+
   def fetchURL(self, url, data=None, headers=None):
     if headers is None:
       headers = self.headers
@@ -104,7 +143,7 @@ class renren:
     response = urllib2.urlopen(req)
     return response
 
-  def statusOutput(self, statusDict, fname):
+  def statusOutput(self, statusDict, fname=None):
     if fname is None:
       fname = 'Status' + badFileName
     try:
@@ -122,16 +161,27 @@ class renren:
       Logging.Logging.error(u'Error')
       return
 
-
-
-
-    
+  def gossipOutput(self, gossipDict, fname=None):
+    if fname is None:
+      fname = 'Gossip' + badFileName
+    try:
+      Logging.Logging.info(u'Printing gossips to ' + fname)
+      fh = open(fname, 'a')
+      for gossip in gossipDict:
+        fh.write(('Date: ' + gossip['gossipDate'] + '\t' + gossip['authorName'] + '\n').encode('utf8'))
+        fh.write((gossip['gossipContent'] + '\n').encode('utf8'))
+      fh.close()
+      Logging.Logging.success(u'Printing DONE!')
+    except:
+      Logging.Logging.error(u'Error')
+      return
+  
 
 if __name__ == '__main__':
   cookie = raw_input('Enter your cookie: ')
   rr = renren(cookie)
-  dd = rr.fetchStatus(page=1)
-  rr.statusOutput(dd, None)
+  dd = rr.fetchGossip()
+  rr.gossipOutput(dd)
 
 
 
