@@ -44,18 +44,13 @@ class renren:
 		conversation = []
 		i = 0
 		for stat in statusJson:
-			# i += 1
-			# Logging.Logging.info(u'Fetching status No.' + str(i))
 			# status info
-			sid = stat['id']
-			statusContent = stat['content']
-			statusDate = stat['dtime']
 			status.append({
 				'userId': userId,
-				'statusId': sid,
-				'statusDate': statusDate,
+				'statusId': stat['id'],
+				'statusDate': stat['dtime'],
 				'isPrivate': False,
-				'statusContent': statusContent,
+				'statusContent': stat['content'],
 			})
 			# conversation info by status ID
 			getData = {
@@ -64,7 +59,7 @@ class renren:
 				'offset': 0,
 				'replaceUBBLarge': True,
 				'type': 'status',
-				'entryId': sid,
+				'entryId': stat['id'],
 				'entryOwnerId': userId
 			}
 			url = 'http://comment.renren.com/comment/xoa2?' + urllib.urlencode(getData)
@@ -73,7 +68,7 @@ class renren:
 			commentJson = json.loads(commentResponse)['comments']
 			for comment in commentJson:
 				conversation.append({
-					'statusId': sid,
+					'statusId': stat['id'],
 					'authorId': comment['authorId'],
 					'commentId': comment['commentId'],
 					'isWhisper': comment['isWhisper'],
